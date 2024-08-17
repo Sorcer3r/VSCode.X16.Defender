@@ -1,0 +1,47 @@
+in manicminer.asm add the code below after verabackup
+
+Start:
+    backupVeraAddrInfo()
+
+    // note: if output is interlaced then scrolling message will look odd
+    // because we cannot scroll both the odd and even fields at the same time!
+    // to overcome this we will force 240P output on NTSC.
+    // I have no idea how smooth scroll would even be possible on interlaced video. 
+    ldx #96             // default start and end lines for scrolling message VGA
+    ldy #112    
+    lda VERA_DC_video
+    and #%00000011
+    cmp #%00000010      // test if we are in NTSC mode
+    bne !VGA+
+    lda VERA_DC_video
+    ora #%00001000      // turn on 240P or it will look horrendous. (comment out to see!)
+    sta VERA_DC_video   
+    ldx #136            // line start and end for scrolling message NTSC
+    ldy #154
+!VGA:
+    stx titleScreen.scrollMessage.scrollstartline
+    sty titleScreen.scrollMessage.scrollstopline
+    
+
+
+------------------------------------------------------------------------
+in titlescreen.asm change the cmp #96 and cmp #112 for new line with label
+
+scrollMessage:{
+	lda $9f28 //	VeraScanline_L	
+	//cmp #96
+	cmp scrollstartline: #96		// 96 for VGA 96+40 (136) for NTSC  
+	bne scrollMessage
+	lda $9f26
+	and #$40
+	beq scrollMessage
+	lda scrollX
+	sta $9f37
+	
+scrollWaitEnd:	
+	lda $9f28 //VeraScanline
+	//cmp #112	
+	cmp scrollstopline: #112	// 112 VGA, +40 = 152 NTSC
+	bne scrollWaitEnd
+	lda $9f26
+

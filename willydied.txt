@@ -1,0 +1,63 @@
+    WillyDied:
+    {
+        lda #WillyDeathState
+        sta Storage.Willy.State
+        // TODO: Temp Take Out For Game
+        stz Storage.Willy.FallingState
+        addressRegister(0,SPRITEREGBASE+6,4,0)
+        lda #$09    
+!spritesOff:                // turn sprites off - not sure how many are in use so do 9?
+        stz VERADATA0
+        dec
+        bne !spritesOff-
+        stz notePtr         // pointer to note sequence
+        lda #$01
+        sta cycleColour    // set first colour for screen flash  
+!nextLoop:
+        ldx #18        // lines of play area
+        addressRegister(0,VRAM_layer1_map+($300+8+1),2,0) // 1st colour byte of play area
+        lda cycleColour: #$00
+        asl
+        asl
+        asl
+        asl                 
+        adc cycleColour   // put colour in background and foreground
+!nextRow:
+        ldy #32           // play area width
+!nextLine:
+        sta VERADATA0
+        dey
+        bne !nextLine-
+        ldy #9            // set to 1st colour on line
+        sty VERAAddrLow
+        inc VERAAddrHigh  //and move to next line
+        dex
+        bpl !nextRow-
+        addressRegister(0,VERAPSG3,1,0) // psg 3
+        ldx notePtr: #$00
+        lda freqTableLo,x
+        sta VERADATA0
+        lda freqTableHi,x
+        sta VERADATA0
+        lda #$c0 + $3f        // both channels + full vol
+        sta VERADATA0
+        lda #$80 + $3f
+        sta VERADATA0
+        inc notePtr
+        wai
+        lda cycleColour
+        inc
+        and #$0f
+        sta cycleColour
+        cmp #$01
+        beq !bypass+
+        jmp !nextLoop-
+!bypass:
+        addressRegister(0,VERAPSG3+2,1,0)
+        stz VERADATA0   // turn ch3 off
+        break()     // remove when willydead is handled correctly
+        rts
+
+        freqTableLo: .byte 156,107,169,101,119,50,75,159,156,107,169,101,119,50,75,159
+        freqTableHi: .byte 41,35,30,25,19,15,12,11,10,9,8,7,6,5,4,3
+    }
