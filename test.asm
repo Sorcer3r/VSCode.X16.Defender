@@ -5,7 +5,18 @@
 //  visible area in radar is 16 pixels wide
 //  true x to radar x =  x/16 + 96 (offset to radar area)
 //  
+
+//  screen is 320*48 bitmap 16 colours (2 pixels per byte)
+//  then remaining 24 lines are tilemap
+//  must be filled with a background colour that is not 0 (transparent)
+//  to hide the bitmap screen behind it. 
+//  15 has been changed to black and is used as background colour to clear screen
+//  
+//  bitmap screen uses 7680 bytes 0-1dff
 //
+//  tilemap is standard screen at 1b000
+
+
 
 #importonce 
 #import "lib/petscii.asm"
