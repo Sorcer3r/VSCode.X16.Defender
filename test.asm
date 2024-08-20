@@ -1,13 +1,15 @@
 .cpu _65c02
 
 //  play area original is 2048
-//  radar view is 128 pixels wide
+//  radar view is 128 pixels wide * 48 lines
 //  visible area in radar is 16 pixels wide
 //  true x to radar x =  x/16 + 96 (offset to radar area)
-//  
+//  true y to radar y is y/4 
+
+//  viewport is 320 * 192   (240 -48 : top 48 lines are radar)
 
 //  screen is 320*48 bitmap 16 colours (2 pixels per byte)
-//  then remaining 24 lines are tilemap
+//  then remaining 24(192 scan lines) lines are tilemap
 //  must be filled with a background colour that is not 0 (transparent)
 //  to hide the bitmap screen behind it. 
 //  15 has been changed to black and is used as background colour to clear screen
@@ -16,7 +18,7 @@
 //
 //  tilemap is standard screen at 1b000
 
-
+// create 160* table for fast maths in bitmap
 
 #importonce 
 #import "lib/petscii.asm"
