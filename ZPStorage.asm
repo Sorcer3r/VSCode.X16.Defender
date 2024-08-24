@@ -17,5 +17,5 @@
     Direction: .byte 0 
 
     SpriteWorkingArray: .word 0   
-    SpriteTempararyArray: .word 0   
+    SpriteTemporaryArray: .word 0   
 }
