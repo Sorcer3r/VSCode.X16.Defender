@@ -12,7 +12,7 @@
 #import "lib/macro.asm"
 #import "lib\VERA_PSG_Constants.asm"
 #import "lib/longBranchMacros.asm"
-#import "display.asm"
+
 
 
 BasicUpstart2(Start)
@@ -35,15 +35,16 @@ Start:{
 loop:
     jsr display.plotPixel
     wai
-    jsr display.clearPixel
+    jsr display.plotPixel
     jsr display.incPixelX
     bra loop
 break()
 }
 
+#import "display.asm"
 
 SpriteData:{
-    #import "Assets\Sprites.asm"
+    //#import "Assets\Sprites.asm"
 }
 
 

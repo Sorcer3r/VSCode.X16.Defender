@@ -76,92 +76,199 @@ row:
 }
 
 drawBitmapFrame:{
-    lda #$00
-    sta pixely
-    stz pixelx+1
     lda #$07    //yellow
     sta pixelColour
+    lda #160-65     // mid point - 64 -1
+    sta pixelx
+    stz pixelx+1
+    stz pixely
     ldy #48
-vLine:    
-    lda #160-65 
+    jsr drawVerticalLine
+
+    lda #160+65     // midpoint + 64 + 1
     sta pixelx
-    jsr plotPixel
-    lda #160+65 
-    sta pixelx
-    jsr plotPixel
-    inc pixely
-    dey
-    bne vLine
+    stz pixelx+1
+    stz pixely
+    ldy #48
+    jsr drawVerticalLine
 
     lda #160-64
     sta pixelx
-    ldy #129
-hLine:    
-    lda #0
-    sta pixely
-    jsr plotPixel
+    stz pixelxHi
+    stz pixely
+    ldy #129        // 129 pixels
+    jsr drawHorizontalLine
+
+    lda #160-64
+    sta pixelx
+    stz pixelxHi
     lda #47
     sta pixely
-    jsr plotPixel
-    jsr incPixelX
-    dey
-    bne hLine
+    ldy #129        // 129 pixels
+    jsr drawHorizontalLine
 
     lda #1
     sta pixelColour
-    sta ZPStorage.TempByte1
-    lda #46
-    sta ZPStorage.TempByte2
+    stz pixelxHi
+    lda #1
+    sta pixely
+    lda #160-8
+    sta pixelx
     ldy #4
-vFrame:    
-    lda ZPStorage.TempByte1
+    jsr drawVerticalLine
+    lda #1
+    sta pixely
+    lda #160+8
+    sta pixelx
+    ldy #4
+    jsr drawVerticalLine
+    lda #43
     sta pixely
     lda #160-8
     sta pixelx
-    jsr plotPixel
-    lda #160+8
-    sta pixelx
-    jsr plotPixel
-    lda ZPStorage.TempByte2
+    ldy #4
+    jsr drawVerticalLine
+    lda #43
     sta pixely
-    lda #160-8
-    sta pixelx
-    jsr plotPixel
     lda #160+8
     sta pixelx
-    jsr plotPixel
-    inc ZPStorage.TempByte1
-    dec ZPStorage.TempByte2
-    dey
-    bne vFrame
+    ldy #4
+    jsr drawVerticalLine
     rts
 }
 
+// y = number of pixels
+// pixelx, pixel y are start point
+// pixelColour = colour to set
+drawVerticalLine:{
+    // lda #160-65 
+    // sta pixelx
+    jsr setPixel
+    // lda #160+65 
+    // sta pixelx
+    // jsr plotPixel
+    inc pixely
+    dey
+    bne drawVerticalLine
+    rts
+}
 
-plotPixel:{
-    addressRegister(0,VRAM_layer0_map,13,0) //step 160
-    ldx pixely
-    beq calcX
-calcY:
-    lda VERADATA0
-    dex
-    bne calcY
-calcX:
-    lda VERAAddrBank
-    and #$0f    // set inc to 0
-    sta VERAAddrBank
-    lda pixelx+1
+// y = number of pixels
+// pixelx, pixel y are start point
+// pixelColour = colour to set
+drawHorizontalLine:{    
+    // lda #0
+    // sta pixely
+    jsr setPixel
+    // lda #47
+    // sta pixely
+    // jsr plotPixel
+    inc pixelx
+    bne !+
+    inc pixelx+1
+!:
+    dey
+    bne drawHorizontalLine
+    rts
+}
+
+// set pixel at Pixelx,pixely to pixelColour
+setPixel:{
+    setDCSel(0)
+    stz VERAAddrBank        // set inc to 0, hi bit of addr to 0
+    lda pixely
+    asl         // *2
+    tax
+    lda table160+1,x    // get Y*160 hi
+    sta VERAAddrHigh
+    lda pixelxHi
     lsr
     lda pixelx
-    ror
+    ror         // div 2
     clc
-    adc VERAAddrLow
+    adc table160,x
     sta VERAAddrLow
     lda VERAAddrHigh
     adc #0
     sta VERAAddrHigh
     ldx VERADATA0
-pp:
+    lda pixelx
+    and #$01
+    beq leftPixel
+    txa
+    and #$f0            // mask off left pixel
+    ora pixelColour    // set right pixel colour
+    bra setPixel
+leftPixel:
+    lda pixelColour
+    asl
+    asl
+    asl
+    asl
+    sta leftColour
+    txa
+    and #$0f                //  mask off right pixel
+    ora leftColour: #$00    //set left pixel colour
+setPixel:
+    sta VERADATA0
+    rts
+}
+
+// clear pixel at Pixelx,pixely to colour 0
+clearPixel:{
+    setDCSel(0)
+    stz VERAAddrBank        // set inc to 0, hi bit of addr to 0
+    lda pixely
+    asl         // *2
+    tax
+    lda table160+1,x    // get Y*160 hi
+    sta VERAAddrHigh
+    lda pixelxHi
+    lsr
+    lda pixelx
+    ror         // div 2
+    clc
+    adc table160,x
+    sta VERAAddrLow
+    lda VERAAddrHigh
+    adc #0
+    sta VERAAddrHigh
+    ldx VERADATA0
+    lda pixelx
+    and #$01
+    beq leftPixel
+    txa
+    and #$f0        // clear right pixel
+    bra setPixel
+leftPixel:
+    txa
+    and #$0f
+setPixel:
+    sta VERADATA0
+    rts
+}
+
+// set/Unset pixel using EOR  
+plotPixel:{
+    setDCSel(0)
+    stz VERAAddrBank        // set inc to 0, hi bit of addr to 0
+    lda pixely
+    asl         // *2
+    tax
+    lda table160+1,x    // get Y*160 hi
+    sta VERAAddrHigh
+    lda pixelxHi
+    lsr
+    lda pixelx
+    ror         // div 2
+    clc
+    adc table160,x
+    sta VERAAddrLow
+    lda VERAAddrHigh
+    adc #0
+    sta VERAAddrHigh
+    ldx VERADATA0
+
     lda pixelx
     and #$01
     beq leftPixel
@@ -177,48 +284,6 @@ leftPixel:
     sta leftColour
     txa
     eor leftColour: #$00    //set left pixel colour
-setPixel:
-    sta VERADATA0
-    rts
-}
-clearPixel:{
-    addressRegister(0,VRAM_layer0_map,13,0) //step 160
-    ldx pixely
-    beq calcX
-calcY:
-    lda VERADATA0   // read vera to inc addr by 160
-    dex
-    bne calcY
-calcX:
-    lda VERAAddrBank
-    and #$0f    // set inc to 0
-    sta VERAAddrBank
-    lda pixelx+1
-    lsr
-    lda pixelx
-    ror
-    clc
-    adc VERAAddrLow
-    sta VERAAddrLow
-    lda VERAAddrHigh
-    adc #0
-    sta VERAAddrHigh
-    ldx VERADATA0
-    lda pixelx
-    and #$01
-    beq leftPixel
-    txa
-    eor pixelColour
-    bra setPixel
-leftPixel:
-    lda pixelColour
-    asl
-    asl
-    asl
-    asl
-    sta leftColour
-    txa
-    eor leftColour: #0
 setPixel:
     sta VERADATA0
     rts
@@ -240,9 +305,17 @@ exit:
     rts
 }
 
-pixelx:      .word 0
+pixelx:      .byte 0
+pixelxHi:    .byte 0
 pixely:      .byte 0
 pixelColour: .byte $05      //green
 
+table160:       // low,Hi
+.for(var i=0;i<48;i++)
+{
+    .byte <i*160
+    .byte >i*160
+
+}
 
 }
