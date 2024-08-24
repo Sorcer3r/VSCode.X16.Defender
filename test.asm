@@ -3,11 +3,12 @@
 // See ReadMe Notes!
 
 #importonce 
+#import "ZPStorage.asm"
 #import "lib/petscii.asm"
 #import "lib/constants.asm"
 #import "lib/kernal_routines.asm"
 
-#import "ZPStorage.asm"
+
 #import "GameConstants.asm"
 #import "lib/macro.asm"
 #import "lib\VERA_PSG_Constants.asm"
@@ -25,7 +26,7 @@ Start:{
     jsr display.clearBitmap
     jsr display.drawBitmapFrame
 
-    lda #24
+    lda #8
     sta display.pixely  // line 24
     stz display.pixelx
     stz display.pixelx +1
@@ -38,7 +39,7 @@ loop:
     jsr display.plotPixel
     jsr display.incPixelX
     bra loop
-break()
+
 }
 
 #import "display.asm"

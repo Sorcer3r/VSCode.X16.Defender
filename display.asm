@@ -1,5 +1,6 @@
 .cpu _65c02
 
+
 .namespace display {
 
 setupDisplay:{
@@ -305,10 +306,17 @@ exit:
     rts
 }
 
-pixelx:      .byte 0
-pixelxHi:    .byte 0
-pixely:      .byte 0
-pixelColour: .byte $05      //green
+// pixelx:      .byte 0
+// pixelxHi:    .byte 0
+// pixely:      .byte 0
+// pixelColour: .byte $05      //green
+
+.zp{
+.label pixelx = ZPStorage.TempByte1 //      .byte 0
+.label pixelxHi= ZPStorage.TempByte2 //:    .byte 0
+.label pixely= ZPStorage.TempByte3 //:      .byte 0
+.label pixelColour= ZPStorage.TempByte4 //: .byte $05      //green
+}
 
 table160:       // low,Hi
 .for(var i=0;i<48;i++)
