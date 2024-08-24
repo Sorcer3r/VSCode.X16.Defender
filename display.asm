@@ -1,4 +1,5 @@
 .cpu _65c02
+#importonce 
 
 
 .namespace display {
@@ -13,23 +14,12 @@ setupDisplay:{
     // layer 1 default $1b000
     // set layer 0 $00000
     // and active
-    // Value	Map width / height
-    // 0	32 tiles
-    // 1	64 tiles
-    // 2	128 tiles
-    // 3	256 tiles
-    // $9F2D	L0_CONFIG	Map Height	Map Width	T256C	Bitmap Mode	Color Depth
-    // $9F2E	L0_MAPBASE	Map Base Address (16:9)
-    // $9F2F	L0_TILEBASE	Tile Base Address (16:11)	Tile Height	Tile Width
-    // Bitmap mode 1/2/4/8 bpp
-    // MAP_BASE isn’t used in these modes. TILE_BASE points to the bitmap data.
-    // TILEW specifies the bitmap width. 0 = 320 pixels wide. 1 = 640 pixels wide.
     lda #%00000110      // bitmapmode + 4bpp
     sta VERA_L0_config       // $9f2d
     lda #%00000000      // 0=320 pixels (1 = 640)
     sta VERA_L0_tilebase     // $9f2f
 	lda VERA_DC_video   // $9f29
-    ora #%00010000      // activate layer 0
+    ora #%01010000      // activate layer 0 and sprites
     sta VERA_DC_video   // $9f29
     addressRegister(0,VRAMPalette +(15*2),1,0)  // colour 15
     stz VERADATA0
@@ -113,25 +103,25 @@ drawBitmapFrame:{
     stz pixelxHi
     lda #1
     sta pixely
-    lda #160-8
+    lda #160-10
     sta pixelx
     ldy #4
     jsr drawVerticalLine
     lda #1
     sta pixely
-    lda #160+8
+    lda #160+10
     sta pixelx
     ldy #4
     jsr drawVerticalLine
     lda #43
     sta pixely
-    lda #160-8
+    lda #160-10
     sta pixelx
     ldy #4
     jsr drawVerticalLine
     lda #43
     sta pixely
-    lda #160+8
+    lda #160+10
     sta pixelx
     ldy #4
     jsr drawVerticalLine

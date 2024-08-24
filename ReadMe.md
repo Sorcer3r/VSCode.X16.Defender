@@ -30,8 +30,8 @@
 -
 -  play area of original game is 2048 wide
 -  radar view is 128 pixels wide * 48 lines
--  this translates as visible screen area in radar of 16 pixels wide
--  !! if  4096 then screen area on radar would cover 8 pixels!
+-  this translates as visible screen area in radar of 20 pixels wide
+-  !! if  4096 then screen area on radar would cover 10 pixels!
 -  !! could use 640 pixel mode but more memory and tile map then has to be 80 chars
 -  translated sprite x to radar x =  x/16 + 96 (offset to radar area)
 -  sprite y to radar y is y/4 

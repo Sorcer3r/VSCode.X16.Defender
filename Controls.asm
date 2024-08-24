@@ -37,38 +37,80 @@
             stx tmpXReg
 
             // Test For Up
-            bbs3 tmpAccumlator, !TestDown+
-            smb0 tmpJoystick
-
+            //bbs3 tmpAccumlator, !TestDown+
+            lda tmpAccumlator
+            and #%00001000
+            bne !TestDown+
+            // smb0 tmpJoystick
+            lda tmpJoystick
+            ora #%00000001
+            sta tmpJoystick
+            
         !TestDown:
             // Test For Down
-            bbs2 tmpAccumlator, !TestLeft+
-            smb1 tmpJoystick
+            // bbs2 tmpAccumlator, !TestLeft+
+            // smb1 tmpJoystick
+            lda tmpAccumlator
+            and #%00000100
+            bne !TestLeft+
+            lda tmpJoystick
+            ora #%00000010
+            sta tmpJoystick
 
         !TestLeft:
             // Test For Left
-            bbs1 tmpAccumlator, !TestRight+
-            smb2 tmpJoystick
+            // bbs1 tmpAccumlator, !TestRight+
+            // smb2 tmpJoystick
+            lda tmpAccumlator
+            and #%00000010
+            bne !TestRight+
+            lda tmpJoystick
+            ora #%00000100
+            sta tmpJoystick
 
         !TestRight:
             // Test For Right
-            bbs0 tmpAccumlator, !TestStart+
-            smb3 tmpJoystick
+            // bbs0 tmpAccumlator, !TestStart+
+            // smb3 tmpJoystick
+            lda tmpAccumlator
+            and #%00000001
+            bne !TestStart+
+            lda tmpJoystick
+            ora #%00001000
+            sta tmpJoystick
 
         !TestStart:
             // Test For Start
-            bbs4 tmpAccumlator, !TestShield+
-            smb5 tmpJoystick
+            // bbs4 tmpAccumlator, !TestShield+
+            // smb5 tmpJoystick
+            lda tmpAccumlator
+            and #%00010000
+            bne !TestShield+
+            lda tmpJoystick
+            ora #%00100000
+            sta tmpJoystick
 
         !TestShield:
             // Test For Shield
-            bbs7 tmpAccumlator, !TestFire+
-            smb6 tmpJoystick
+            // bbs7 tmpAccumlator, !TestFire+
+            // smb6 tmpJoystick
+            lda tmpAccumlator
+            and #%10000000
+            bne !TestFire+
+            lda tmpJoystick
+            ora #%01000000
+            sta tmpJoystick
 
         !TestFire:
             // Test For Fire
-            bbs7 tmpXReg, !NothingPressed+
-            smb4 tmpJoystick
+            // bbs7 tmpXReg, !NothingPressed+
+            // smb4 tmpJoystick
+            lda tmpAccumlator
+            and #%10000000
+            bne !NothingPressed+
+            lda tmpJoystick
+            ora #%00010000
+            sta tmpJoystick
 
         !NothingPressed:
             lda tmpJoystick
