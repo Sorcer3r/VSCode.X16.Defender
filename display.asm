@@ -1,6 +1,8 @@
 .cpu _65c02
 #importonce 
-
+#import "lib\macro.asm"
+#import "lib\constants.asm"
+#import "ZPStorage.asm"
 
 .namespace display {
 

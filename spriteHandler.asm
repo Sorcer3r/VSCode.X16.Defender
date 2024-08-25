@@ -2,16 +2,23 @@
 #importonce
 #import "Storage.asm"
 #import "display.asm"
+#import "lib\constants.asm"
 
 .namespace spriteHandler{
 
-initSprite:{
-    lda #150
-    sta Storage.spriteX
-    stz Storage.spriteXHi
-    lda #96
-    sta Storage.spriteY
+initSprites:{
     addressRegister(0,SPRITEREGBASE,1,0)
+    ldx #0         // max number of sprites
+initLoop:
+    lda Storage.tempStartX,x
+    sta Storage.spriteX,x
+    lda Storage.tempStartXHi,x
+    sta Storage.spriteXHi,x
+    lda Storage.tempStartY,x
+    sta Storage.spriteY,x
+    stz Storage.spriteFrame,x   //enabled - frame 0 (not implemented yet)
+    lda #$ff
+    sta Storage.oldspriteXRadar,x
 
     stz VERADATA0
     lda #1
@@ -23,21 +30,29 @@ initSprite:{
     stz VERADATA0       // turn off sprite
     lda #%01010000
     sta VERADATA0       // set 16*16
+    inx
+    cpx #Storage.maxSprites         //sprite limit
+    bne initLoop
     rts
 }
 
 // calc position of sprite against viewport and display if visible
 displaySprite:{
-    addressRegister(0,SPRITEREGBASE+2,1,0)  // start at x
-    lda Storage.spriteX
+    addressRegister(0,SPRITEREGBASE,1,0)  
+    ldy #0      // sprite counter
+displaySpriteLoop:
+    lda Storage.spriteFrame,y
+    cmp #$ff        // disabled
+    beq nextSprite    
+    lda Storage.spriteX,y
     sec
     sbc Storage.viewport
-    sta Storage.spriteXDisp
+    sta Storage.spriteXDisp,y
     tax
-    lda Storage.spriteXHi
+    lda Storage.spriteXHi,y
     sbc Storage.viewport+1
     and #07
-    sta Storage.spriteXHiDisp
+    sta Storage.spriteXHiDisp,y
 // now check if >=$7f0 and < $140
     beq isOnScreen
     cmp #$07
@@ -55,37 +70,53 @@ checkLeftLimit:
     bcc notOnScreen
 
 isOnScreen:
-    lda Storage.spriteXDisp
+    lda VERADATA0
+    lda VERADATA0   // skip first 2 bytes
+
+    lda Storage.spriteXDisp,y
     sta VERADATA0
-    lda Storage.spriteXHiDisp
+    lda Storage.spriteXHiDisp,y
     sta VERADATA0
-    lda Storage.spriteY
+    lda Storage.spriteY,y
     clc
     adc #48     // offset for radar at top
     sta VERADATA0
     stz VERADATA0   // y never >255
     lda #%00001100  // move to foreground
     sta VERADATA0
-    bra exit
+    lda VERADATA0   // skip last
+    bra nextSprite
 
 notOnScreen:
     lda VERAAddrLow
     clc
-    adc #$05
+    adc #$06
     sta VERAAddrLow
-    lda VERADATA0       // bump to next address
     lda #$00
     sta VERADATA0       // set sprite to back
-exit:
+    lda VERADATA0
+nextSprite:
+    iny
+    cpy #Storage.maxSprites
+    bne displaySpriteLoop
     rts
 }
 
 displaySpriteOnHUD:{
-    lda Storage.spriteXHiDisp
+    ldy #0      // sprite counter
+displayHudLoop:
+    lda Storage.spriteFrame
+    cmp #$ff
+    beq nextHud
+    stz display.pixelxHi
+    tya
+    and #$0f        // colour 
+    sta display.pixelColour
+
+    lda Storage.spriteXHiDisp,y
     sta hudXHi
-    lda Storage.spriteXDisp
+    lda Storage.spriteXDisp,y
     sta hudX
-    
     lsr hudXHi
     ror hudX
     lsr hudXHi
@@ -93,11 +124,10 @@ displaySpriteOnHUD:{
     lsr hudXHi
     ror hudX
     lsr hudX
-    lda Storage.spriteY
+    lda Storage.spriteY,y
     lsr
     lsr
-    sta Storage.spriteYRadar
-    tax
+    sta Storage.spriteYRadar,y
     lda hudX
     cmp #72
     bcc !+
@@ -106,36 +136,44 @@ displaySpriteOnHUD:{
 !:
     clc
     adc #96+56
-    sta Storage.spriteXRadar
-    cmp Storage.oldspriteXRadar
-    bne moved
+    sta Storage.spriteXRadar,y
+    tax
+    lda Storage.oldspriteXRadar,y
+    cmp #$ff            // no old position to erase, just draw
+    beq noOldPos
     txa
-    cmp Storage.oldspriteYRadar
-    beq notMoved
+    cmp Storage.oldspriteXRadar,y
+    bne moved
+    lda Storage.spriteYRadar,y
+    cmp Storage.oldspriteYRadar,y
+    beq nextHud
 moved:
-    lda Storage.oldspriteXRadar
+    lda Storage.oldspriteXRadar,y
     sta display.pixelx
-    lda Storage.oldspriteYRadar
+    lda Storage.oldspriteYRadar,y
     sta display.pixely    
-    stz display.pixelxHi
-    lda #13  //colour
-    sta display.pixelColour
-    jsr display.clearPixel       // turn old pixel off
-    lda Storage.spriteXRadar
-    sta Storage.oldspriteXRadar
+    jsr display.plotPixel       // turn old pixel off
+noOldPos:
+    lda Storage.spriteXRadar,y
+    sta Storage.oldspriteXRadar,y
     sta display.pixelx
-    lda Storage.spriteYRadar
-    sta Storage.oldspriteYRadar
+    lda Storage.spriteYRadar,y
+    sta Storage.oldspriteYRadar,y
     sta display.pixely    
-    jsr display.setPixel
-notMoved:    
+    jsr display.plotPixel
+nextHud:
+    iny
+    cpy #Storage.maxSprites
+    bne displayHudLoop
     rts
 
 
 .zp{
     .label hudX = ZPStorage.TempByte5
     .label hudXHi = ZPStorage.TempByte6
-    .label hudY = ZPStorage.TempByte7 
+    .label hudY = ZPStorage.TempByte7
+    .label tempX = ZPStorage.TempByte8
+    .label tempy = ZPStorage.TempByte9
 }
 
 }

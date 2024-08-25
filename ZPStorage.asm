@@ -11,7 +11,9 @@
     TempByte6: .byte 0
     TempByte7: .byte 0
     TempByte8: .byte 0
-
+    TempByte9: .byte 0
+    TempByte10: .byte 0
+    
     JoyStick: .byte 0
 
     Direction: .byte 0 

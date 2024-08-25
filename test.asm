@@ -21,11 +21,12 @@ Start:{
     jsr display.clearBitmap
     jsr display.drawBitmapFrame
 
-    jsr spriteHandler.initSprite
+    jsr spriteHandler.initSprites
     lda #$00
     sta Storage.viewport
     lda #$00
     sta Storage.viewport+1
+
 loop:   wai
     jsr spriteHandler.displaySprite
     jsr spriteHandler.displaySpriteOnHUD
