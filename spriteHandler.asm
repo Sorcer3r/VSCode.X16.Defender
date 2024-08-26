@@ -117,35 +117,35 @@ displayHudLoop:
     asl
     asl
     asl
-    ora hudColour: #$ff        // colour in both nibbles 
+    ora hudColour: #$ff        // set colour in both nibbles 
     sta display.pixelColour
     lda Storage.spriteXHiDisp,y
     sta hudXHi
     lda Storage.spriteXDisp,y
-    sta hudX
+    sta hudX                   // divide X position by 16 
     lsr hudXHi
-    ror hudX
+    ror hudX        //  x/2
     lsr hudXHi
-    ror hudX
+    ror hudX        //  x/4
     lsr hudXHi
-    ror hudX
-    lsr hudX
+    ror hudX        //  x/8
+    lsr hudX        //  x/16 (Hi will be 0 at this point anyway)
     lda Storage.spriteY,y
     lsr
-    lsr
+    lsr             //  y/4
     sta Storage.spriteYRadar,y
     lda hudX
-    cmp #72
+    cmp #72         // are we past right edge
     bcc !+
     sec
-    sbc #128
+    sbc #128        // if so move left 128
 !:
     clc
-    adc #96+56
+    adc #96+56      // add offset to left edge of radar + distance to centre window
     sta Storage.spriteXRadar,y
     tax
     lda Storage.oldspriteXRadar,y
-    cmp #$ff            // no old position to erase, just draw
+    cmp #$ff            // $ff means no old position to erase, just draw
     beq noOldPos
     txa
     cmp Storage.oldspriteXRadar,y
@@ -158,7 +158,7 @@ moved:
     sta display.pixelx
     lda Storage.oldspriteYRadar,y
     sta display.pixely    
-    jsr display.plotPixel       // turn old pixel off
+    jsr display.plotPixel       // turn old pixel off (eor)
 noOldPos:
     lda Storage.spriteXRadar,y
     sta Storage.oldspriteXRadar,y
@@ -166,7 +166,7 @@ noOldPos:
     lda Storage.spriteYRadar,y
     sta Storage.oldspriteYRadar,y
     sta display.pixely    
-    jsr display.plotPixel
+    jsr display.plotPixel       // plot new pixel (eor)
 nextHud:
     iny
     cpy #Storage.maxSprites
