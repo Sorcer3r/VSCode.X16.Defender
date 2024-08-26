@@ -69,7 +69,7 @@ row:
 }
 
 drawBitmapFrame:{
-    lda #$07    //yellow
+    lda #$77    //yellow Note: always put colour in upper and lower nibbles
     sta pixelColour
     lda #160-65     // mid point - 64 -1
     sta pixelx
@@ -100,7 +100,7 @@ drawBitmapFrame:{
     ldy #129        // 129 pixels
     jsr drawHorizontalLine
 
-    lda #1
+    lda #$11            // always put colour in upper and lower nibbles
     sta pixelColour
     stz pixelxHi
     lda #1
@@ -132,7 +132,7 @@ drawBitmapFrame:{
 
 // y = number of pixels
 // pixelx, pixel y are start point
-// pixelColour = colour to set
+// pixelColour = colour to set (put in both nibbles - we mask unwanted half)
 drawVerticalLine:{
     // lda #160-65 
     // sta pixelx
@@ -148,7 +148,7 @@ drawVerticalLine:{
 
 // y = number of pixels
 // pixelx, pixel y are start point
-// pixelColour = colour to set
+// pixelColour = colour to set (put in both nibbles - we mask unwanted half)
 drawHorizontalLine:{    
     // lda #0
     // sta pixely
@@ -184,25 +184,24 @@ setPixel:{
     lda VERAAddrHigh
     adc #0
     sta VERAAddrHigh
-    ldx VERADATA0
+    ldx VERADATA0   //get current data from display
     lda pixelx
     and #$01
     beq leftPixel
-    txa
+    lda pixelColour
+    and #$0f        // only use right Pixel
+    sta thisPixelColour
+    txa 
     and #$f0            // mask off left pixel
-    ora pixelColour    // set right pixel colour
     bra setPixel
 leftPixel:
     lda pixelColour
-    asl
-    asl
-    asl
-    asl
-    sta leftColour
+    and #$f0            //only use left Pixel
+    sta thisPixelColour
     txa
     and #$0f                //  mask off right pixel
-    ora leftColour: #$00    //set left pixel colour
 setPixel:
+    ora thisPixelColour
     sta VERADATA0
     rts
 }
@@ -265,19 +264,29 @@ plotPixel:{
     lda pixelx
     and #$01
     beq leftPixel
+    lda pixelColour
+    and #$0f        // only use right Pixel
+    sta thisPixelColour
     txa
-    eor pixelColour    // set right pixel colour
+//    eor pixelColour    // set right pixel colour
     bra setPixel
 leftPixel:
     lda pixelColour
-    asl
-    asl
-    asl
-    asl
-    sta leftColour
+    and #$f0            //only use left Pixel
+    sta thisPixelColour
     txa
-    eor leftColour: #$00    //set left pixel colour
+//    and #$0f                //  mask off right pixel
+
+    // lda pixelColour
+    // asl
+    // asl
+    // asl
+    // asl
+    // sta leftColour
+    // txa
+    // eor leftColour: #$00    //set left pixel colour
 setPixel:
+    eor thisPixelColour    // set right pixel colour
     sta VERADATA0
     rts
 }
@@ -304,10 +313,11 @@ exit:
 // pixelColour: .byte $05      //green
 
 .zp{
-.label pixelx = ZPStorage.TempByte1 //      .byte 0
-.label pixelxHi= ZPStorage.TempByte2 //:    .byte 0
-.label pixely= ZPStorage.TempByte3 //:      .byte 0
-.label pixelColour= ZPStorage.TempByte4 //: .byte $05      //green
+.label pixelx = ZPStorage.TempByte1 
+.label pixelxHi= ZPStorage.TempByte2
+.label pixely= ZPStorage.TempByte3 
+.label pixelColour= ZPStorage.TempByte4  
+.label thisPixelColour = ZPStorage.TempByte5    
 }
 
 table160:       // low,Hi

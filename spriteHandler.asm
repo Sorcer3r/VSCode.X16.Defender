@@ -28,7 +28,8 @@ initLoop:
     lda VERADATA0
     lda VERADATA0
     stz VERADATA0       // turn off sprite
-    lda #%01010000
+    //lda #%01010000
+    lda #0 //8*8
     sta VERADATA0       // set 16*16
     inx
     cpx #Storage.maxSprites         //sprite limit
@@ -104,15 +105,20 @@ nextSprite:
 
 displaySpriteOnHUD:{
     ldy #0      // sprite counter
+    stz display.pixelxHi        // radar max X is 192 so always 0
 displayHudLoop:
     lda Storage.spriteFrame
     cmp #$ff
     beq nextHud
-    stz display.pixelxHi
     tya
-    and #$0f        // colour 
+    and #$0f            // this is just to set a diff colour for each draw in bitmap
+    sta hudColour       // but need colour in both nibbles
+    asl
+    asl
+    asl
+    asl
+    ora hudColour: #$ff        // colour in both nibbles 
     sta display.pixelColour
-
     lda Storage.spriteXHiDisp,y
     sta hudXHi
     lda Storage.spriteXDisp,y
@@ -169,11 +175,11 @@ nextHud:
 
 
 .zp{
-    .label hudX = ZPStorage.TempByte5
-    .label hudXHi = ZPStorage.TempByte6
-    .label hudY = ZPStorage.TempByte7
-    .label tempX = ZPStorage.TempByte8
-    .label tempy = ZPStorage.TempByte9
+    .label hudX = ZPStorage.TempByte6
+    .label hudXHi = ZPStorage.TempByte7
+    .label hudY = ZPStorage.TempByte8
+    .label tempX = ZPStorage.TempByte9
+    .label tempy = ZPStorage.TempByte10
 }
 
 }

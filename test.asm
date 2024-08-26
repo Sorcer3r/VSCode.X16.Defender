@@ -28,8 +28,19 @@ Start:{
     sta Storage.viewport+1
 
 loop:   wai
+
+
     jsr spriteHandler.displaySprite
+    //set colour 7 - check time routine takes
+    // addressRegister(0,$1fa0e,0,0)
+    // lda #$00
+    // sta VERADATA0
     jsr spriteHandler.displaySpriteOnHUD
+    //set colour 7 - check time routine takes
+    // addressRegister(0,$1fa0e,0,0)
+    // lda #$e7     correct value
+    // sta VERADATA0
+
 
     jsr Controls.GetJoyStick
     lda ZPStorage.JoyStick
