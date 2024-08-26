@@ -325,7 +325,6 @@ table160:       // low,Hi
 {
     .byte <i*160
     .byte >i*160
-
 }
 
 }
