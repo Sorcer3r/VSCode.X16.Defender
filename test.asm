@@ -26,8 +26,10 @@ Start:{
     sta Storage.viewport
     lda #$00
     sta Storage.viewport+1
+    jsr player.initPlayer
 
 loop:   wai
+    jsr player.control
     jsr spriteHandler.displaySprite
     //set colour 7 - check time routine takes
     // addressRegister(0,$1fa0e,0,0)
@@ -38,6 +40,8 @@ loop:   wai
     // addressRegister(0,$1fa0e,0,0)
     // lda #$e7     // correct value
     // sta VERADATA0
+    jsr display.updateViewport
+    bra loop
 
     jsr Controls.GetJoyStick
     lda ZPStorage.JoyStick
@@ -82,7 +86,7 @@ tmpDir: .byte 0
 #import "spriteHandler.asm"
 #import "display.asm"
 #import "Controls.asm"
-
+#import "player.asm"
 SpriteData:{
     //#import "Assets\Sprites.asm"
 }

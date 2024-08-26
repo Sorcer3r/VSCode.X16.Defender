@@ -28,8 +28,8 @@ initLoop:
     lda VERADATA0
     lda VERADATA0
     stz VERADATA0       // turn off sprite
-    //lda #%01010000
-    lda #0 //8*8
+    lda #%01010000
+    //lda #0 //8*8
     sta VERADATA0       // set 16*16
     inx
     cpx #Storage.maxSprites         //sprite limit
@@ -111,7 +111,7 @@ displayHudLoop:
     cmp #$ff
     beq nextHud
     tya
-    and #$0f            // this is just to set a diff colour for each draw in bitmap
+    and #$0e            // this is just to set a diff colour for each draw in bitmap
     sta hudColour       // but need colour in both nibbles
     asl
     asl
@@ -170,7 +170,9 @@ noOldPos:
 nextHud:
     iny
     cpy #Storage.maxSprites
-    bne displayHudLoop
+    beq exit
+    jmp displayHudLoop
+exit:
     rts
 
 

@@ -3,8 +3,92 @@
 #import "lib\macro.asm"
 #import "lib\constants.asm"
 #import "ZPStorage.asm"
+#import "Storage.asm"
 
 .namespace display {
+
+updateViewport:{
+// calc viewport target
+// this should be player -50 if going right
+// use player -256 if going left (ez mode)
+// calc offset from player
+// calc step to take  as difference/8
+    lda Storage.player.dir
+    bne goingLeft
+    lda Storage.player.x
+    sec
+    sbc #50
+    sta Storage.viewportTarget
+    tax
+    lda Storage.player.xHi
+    sbc #0
+    sta Storage.viewportTarget+1
+    tay
+    txa
+    sec
+    sbc Storage.viewport
+    sta Storage.viewportOffset
+    tax
+    tya
+    sec
+    sbc Storage.viewport+1
+    sta Storage.viewportOffset+1
+    bne needToMove
+    lda Storage.viewportOffset
+    beq exit    
+needToMove:    
+    txa
+    lsr
+    lsr
+    lsr
+    lsr
+    adc Storage.viewport
+    sta Storage.viewport
+    lda Storage.viewport+1
+    adc #0
+    sta Storage.viewport+1
+    bra exit
+
+goingLeft:
+    lda Storage.player.x
+    sec
+    sbc #0
+    sta Storage.viewportTarget
+    tax
+    lda Storage.player.xHi
+    sbc #1
+    sta Storage.viewportTarget+1
+    tay
+    txa
+    sec
+    sbc Storage.viewport
+    sta Storage.viewportOffset
+    tax
+    tya
+    sec
+    sbc Storage.viewport+1
+    sta Storage.viewportOffset+1
+    bne needToMoveL
+    lda Storage.viewportOffset
+    beq exit    
+needToMoveL:    
+    txa
+    lsr
+    lsr
+    lsr
+    lsr
+    sec
+    sbc Storage.viewport
+    sta Storage.viewport
+    lda Storage.viewport+1
+    sbc #0
+    sta Storage.viewport+1
+//    bra exit
+    //break()
+
+exit:
+    rts
+}
 
 setupDisplay:{
     // set 40 chars etc
