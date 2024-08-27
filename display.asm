@@ -46,46 +46,71 @@ needToMove:
     sta Storage.viewport
     lda Storage.viewport+1
     adc #0
-    sta Storage.viewport+1
-    bra exit
+    bra saveExit
+    //    and #$07
+    //sta Storage.viewport+1
+
 
 goingLeft:
+//break()
     lda Storage.player.x
-    sec
-    sbc #0
+    // sec
+    // sbc #$0e
     sta Storage.viewportTarget
-    tax
     lda Storage.player.xHi
     sbc #1
+    and #$07
     sta Storage.viewportTarget+1
-    tay
-    txa
+    lda Storage.viewport
     sec
-    sbc Storage.viewport
+    sbc Storage.viewportTarget
     sta Storage.viewportOffset
     tax
-    tya
+    lda Storage.viewport+1
     sec
-    sbc Storage.viewport+1
+    sbc Storage.viewportTarget+1
+    and #$07
     sta Storage.viewportOffset+1
     bne needToMoveL
     lda Storage.viewportOffset
     beq exit    
-needToMoveL:    
+needToMoveL:
+//break()
+    lda Storage.viewportOffset+1
+    bne moveLmax
+    ldy #0
+ //   lda Storage.player.thrust
+
     txa
-    lsr
-    lsr
-    lsr
-    lsr
+    beq moveL1
+    iny
+    cmp #16
+    bcc moveL1
+    iny
+    cmp #32
+    bcc moveL1
+    iny
+    cmp #48
+    bcc moveL1
+    iny
+    cmp #64
+    bcc moveL1
+    ldy #6
+    cmp #96   
+    bcc moveL1
+moveLmax:
+    ldy #8
+moveL1:
+    sty ZPStorage.TempByte10
     sec
-    sbc Storage.viewport
+    lda Storage.viewport
+    sbc ZPStorage.TempByte10
     sta Storage.viewport
     lda Storage.viewport+1
-    sbc #0
+    sbc #$00
+saveExit:
+    and #$07
     sta Storage.viewport+1
-//    bra exit
-    //break()
-
 exit:
     rts
 }

@@ -26,6 +26,7 @@ control:{
     tax
     lda Storage.player.dir
     beq goingRight
+//break()
     stx thrustL
     lda Storage.player.x
     sec
@@ -46,7 +47,7 @@ updatePlayerSprite:
     and #$07
     sta Storage.player.xHi
 noThrust:
-    ldx #127
+    ldx #Storage.maxSprites-1
     lda Storage.player.x
     sta Storage.spriteX,x
     lda Storage.player.xHi
@@ -105,7 +106,7 @@ testThrust:
     stz Storage.player.thrustCounter
     lda Storage.player.thrust
     inc
-    cmp #$08
+    cmp #$09
     bne notMaxThrust
     dec
 notMaxThrust:

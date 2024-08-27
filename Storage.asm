@@ -25,7 +25,7 @@ player:{
 }
 
 
-.label maxSprites = 128
+.label maxSprites = 64 //128
 .align $100
 // world x/y 0-7ff,0-bf (2047,192) 
 //sprite table for maxSprites entries. 12 bytes/sprite
